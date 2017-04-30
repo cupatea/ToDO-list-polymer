@@ -1,6 +1,6 @@
 # \<to-do-list-polymer\>
 
-Simple to do list with polymer 2.0
+todo list polymer
 
 ## Install the Polymer-CLI
 
