@@ -1,4 +1,6 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<!--<link rel="import" href="../../bower_components/polymer/lib/elements/dom-if.html">-->
+<!--<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">-->
 
 <dom-module id="to-do-list-polymer-app">
   <template>
@@ -7,21 +9,23 @@
         display: block;
       }
     </style>
-    <h2>Hello [[prop1]]</h2>
+    <h2>Hello [[prop1]]!</h2>
   </template>
 
   <script>
-    Polymer({
+    /** @polymerElement */
+    class ToDoListPolymerApp extends Polymer.Element {
+      static get is() { return 'to-do-list-polymer-app'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'to-do-list-polymer-app'
+          }
+        };
+      }
+    }
 
-      is: 'to-do-list-polymer-app',
-
-      properties: {
-        prop1: {
-          type: String,
-          value: 'to-do-list-polymer-app',
-        },
-      },
-
-    });
+    window.customElements.define(ToDoListPolymerApp.is, ToDoListPolymerApp);
   </script>
 </dom-module>
