@@ -1,4 +1,13 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
+<link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
+
 
 <dom-module id="to-do-list-polymer-app">
   <template>
@@ -6,22 +15,181 @@
       :host {
         display: block;
       }
+      .container{
+        margin: auto;
+        width: 50%;
+        padding: 10px;
+      }
+      .form {
+        display: flex;
+        width: 80%;
+        margin-left: 26px;
+        margin-bottom: 30px;
+      }
+      .form paper-input {
+        --paper-input-container-color: black;
+        --paper-input-container-focus-color: red;
+        flex:1;
+        margin-right: 30px;
+      }
+
+      .right_button {
+        position: absolute;
+        right: 118px;
+        top: 3px;
+        color: #616161;
+      }
+      .left_button {
+        color: #616161;
+      }
+      .form paper-icon-button {
+        align-self:  center;
+        color: #616161;
+      }
+
     </style>
-    <h2>Hello [[prop1]]</h2>
+    <div class='container'>
+      <div class='form'>
+
+        <paper-input
+          always-float-label label='Enter your task here:'
+          value="{{task}}"
+          char-counter
+          maxlength='50'
+        ></paper-input>
+
+        <paper-icon-button
+          icon='add'
+          on-tap="_addTask"
+        ></paper-icon-button>
+
+        <iron-a11y-keys
+          target="[[target]]"
+          keys='enter'
+          on-keys-pressed="_addTask"
+        ></iron-a11y-keys>
+      </div>
+
+      <div class='todo'>
+        <paper-listbox>
+          <template is="dom-repeat" items="{{ tasks }}">
+            <paper-item>
+
+              <paper-icon-button
+                class='left_button'
+                icon='radio-button-unchecked'
+                on-tap="_completeTask"
+              ></paper-icon-button>
+
+              {{item}}
+
+              <paper-icon-button
+                class='right_button'
+                icon='cancel'
+                on-tap="_deleteTask"
+              ></paper-icon-button>
+
+            </paper-item>
+          </template>
+        </paper-listbox>
+      </div>
+
+      <div class='completed'>
+        <paper-listbox>
+          <template is="dom-repeat" items="{{ completions }}">
+            <paper-item>
+
+              <paper-icon-button
+                class='left_button'
+                icon='check-circle'
+                on-tap="_unCompleteTask"
+              ></paper-icon-button>
+
+              {{item}}
+
+              <paper-icon-button
+                class='right_button'
+                icon='cancel'
+                on-tap="_deleteCompletion"
+              ></paper-icon-button>
+
+            </paper-item>
+          </template>
+        </paper-listbox>
+      </div>
+    </div>
+
+    <iron-localstorage name="tasks"
+      value="{{tasks}}"
+      on-iron-localstorage-load-empty="initializeEmptyTasks"
+    ></iron-localstorage>
+
+    <iron-localstorage name="completions"
+      value="{{completions}}"
+      on-iron-localstorage-load-empty="initializeEmptyCompletions"
+    ></iron-localstorage>
   </template>
+
 
   <script>
     Polymer({
-
       is: 'to-do-list-polymer-app',
 
       properties: {
-        prop1: {
+        task: {
           type: String,
-          value: 'to-do-list-polymer-app',
+          value: function(){
+            return "";
+          }
         },
+        tasks: {
+          type: Array,
+          value:function(){
+            return [];
+          }
+        },
+        completions: {
+          type: Array,
+          value:function(){
+            return [];
+          }
+        }
       },
 
+      _addTask: function() {
+        if(this.task) { this.push('tasks', this.task); }
+        this.task = "";
+      },
+
+      _deleteTask: function(e) {
+        var index = this.tasks.indexOf(e.model.get('item'));
+        this.splice('tasks', index, 1);
+      },
+
+      _deleteCompletion: function(e) {
+        var index = this.completions.indexOf(e.model.get('item'));
+        this.splice('completions', index, 1);
+      },
+
+      _completeTask: function(e){
+        var index = this.tasks.indexOf(e.model.get('item'));
+        this.push('completions', this.tasks[index]);
+        this.splice('tasks', index, 1);
+      },
+
+      _unCompleteTask: function(e){
+        var index = this.completions.indexOf(e.model.get('item'));
+        this.push('tasks', this.completions[index]);
+        this.splice('completions', index, 1);
+      },
+
+      initializeEmptyTasks: function(){
+        this.tasks = [];
+      },
+
+      initializeEmptyCompletions: function(){
+        this.completions = [];
+      }
     });
   </script>
 </dom-module>
