@@ -8,121 +8,185 @@
 <link rel="import" href="../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
 <link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
 
 <dom-module id="to-do-list-polymer-app">
   <template>
     <style>
+
       :host {
         display: block;
+        padding: 64px 0 0 0;
+        background: #F6F6F7;
       }
       .container{
-        margin: auto;
-        width: 50%;
-        padding: 10px;
+        width:100%;
+        float: left;
       }
-      .form {
-        display: flex;
-        width: 80%;
-        margin-left: 26px;
-        margin-bottom: 30px;
-      }
-      .form paper-input {
-        --paper-input-container-color: black;
-        --paper-input-container-focus-color: red;
-        flex:1;
-        margin-right: 30px;
+      paper-toolbar{
+        width:100%;
+        position:fixed;
+        top: 0;
+        left: 0;
+        z-index: 5;
+        background:#24292E;
+        box-shadow: 0px 2px 4px rgba(44,62,80,0.15);
+        border-bottom-right-radius: 8px;
+        border-bottom-left-radius: 8px;
+
       }
 
       paper-item{
+        display:flex;
+        position:relative;
+        padding: 0 96px 0 0;
+        box-shadow: 0px 1px 2px rgba(44,62,80,0.10);
+        padding-left: 20px;
+        margin: 15px;
         --paper-item-selected-weight:regular;
+        -webkit-appearance:none;
+        -moz-appearance:none;
+        -ms-appearance:none;
+        -o-appearance:none;
+        appearance:none;
+      }
+      paper-item .buttons{
+        width: 96px;
+        height: 48px;
+        position:absolute;
+        top:0;
+        right: 15px;
       }
 
-      .right_button {
-        position: absolute;
-        right: 118px;
-        top: 3px;
-        color: #616161;
+      paper-item .buttons paper-icon-button{
+        position: relative;
+        width:48px;
+        height: 48px;
+        float:left;
+        color:#616161;
       }
-      .left_button {
-        display:felx;
-        color: #616161;
+      paper-item .buttons paper-icon-button:hover{
+        color: #EF5350;
       }
-      .form paper-icon-button {
-        align-self:  center;
-        color: #616161;
-        display:flex;
+      #completed paper-item .buttons .right_button{
+        color: #EF5350;
+      }
+  
+      paper-item .buttons paper-icon-button:last-of-type:before{
+        content: '';
+        width: 1px;
+        height: 30px;
+        position:absolute;
+        top:10px;
+        left:0;
+        background:#edf0f1;
+      }
+
+      paper-button{
+        color: #000;
+        text-transform: uppercase;
+        outline-color: #616161;
+      }
+
+
+      .add_input{
+        --paper-input-container-color: black;
+        --paper-input-container-focus-color: red;
+        width: 300px;
+      }
+      .add_button{
+        --paper-fab-background: #F44336;
+        position:fixed;
+        bottom: 30px;
+        right:24px;
       }
 
     </style>
+    <paper-toolbar>
+      <paper-icon-button icon="menu"></paper-icon-button>
+      <span class="title">To Do List</span>
+    </paper-toolbar>
+
+
     <div class='container'>
-      <div class='form'>
-
-        <paper-input
-          always-float-label label='Enter your task here:'
-          value="{{task.name}}"
-          char-counter
-          maxlength='50'
-        ></paper-input>
-
-        <paper-icon-button
-          icon='add'
-          on-tap="_addTask"
-        ></paper-icon-button>
-
-        <iron-a11y-keys
-          target="[[target]]"
-          keys='enter'
-          on-keys-pressed="_addTask"
-        ></iron-a11y-keys>
-      </div>
-
-      <div class='todo'>
-        <paper-listbox>
-          <template is="dom-repeat" items="{{ tasks }}">
-            <paper-item>
-
+      <paper-listbox ids="todo">
+        <template is="dom-repeat" items="{{ tasks }}">
+          <paper-item>
+            {{item.name}}
+            <div class="buttons">
               <paper-icon-button
                 class='left_button'
-                icon='radio-button-unchecked'
-                on-tap="_completeTask"
-              ></paper-icon-button>
-
-              {{item.name}}
-
-              <paper-icon-button
-                class='right_button'
                 icon='cancel'
                 on-tap="_deleteTask"
               ></paper-icon-button>
 
-            </paper-item>
-          </template>
-        </paper-listbox>
-      </div>
+              <paper-icon-button
+                class='right_button'
+                icon='radio-button-unchecked'
+                on-tap="_completeTask"
+              ></paper-icon-button>
+            </div>
 
-      <div class='completed'>
-        <paper-listbox>
-          <template is="dom-repeat" items="{{ completions }}">
-            <paper-item>
+          </paper-item>
+        </template>
+      </paper-listbox>
+
+      <paper-listbox id="completed">
+        <template is="dom-repeat" items="{{ completions }}">
+          <paper-item>
+
+            {{item.name}}
+
+            <div class="buttons">
 
               <paper-icon-button
                 class='left_button'
-                icon='check-circle'
-                on-tap="_unCompleteTask"
-              ></paper-icon-button>
-
-              {{item.name}}
-
-              <paper-icon-button
-                class='right_button'
                 icon='cancel'
                 on-tap="_deleteCompletion"
               ></paper-icon-button>
 
-            </paper-item>
-          </template>
-        </paper-listbox>
-      </div>
+              <paper-icon-button
+                class='right_button'
+                icon='check-circle'
+                on-tap="_unCompleteTask"
+              ></paper-icon-button>
+
+            </div>
+
+          </paper-item>
+        </template>
+      </paper-listbox>
+
+
+      <paper-fab
+        class="add_button"
+        icon='add'
+        on-click='_showAddTaskDialog'
+      ></paper-fab>
+
+      <paper-dialog id='addTaskDialog' modal>
+        <paper-input
+          class="add_input"
+          always-float-label label='Enter your task here:'
+          value="{{task.name}}"
+          char-counter
+          maxlength='40'
+        ></paper-input>
+
+        <div class='buttons'>
+            <paper-button  dialog-dismiss>Cancel</paper-button>
+            <paper-button  on-tap="_addTask">Add</paper-button>
+        </div>
+      </paper-dialog>
+
+      <iron-a11y-keys
+        target="[[target]]"
+        keys='enter'
+        on-keys-pressed="_addTask"
+      ></iron-a11y-keys>
+
     </div>
 
     <!-- <iron-localstorage name="tasks"
@@ -196,7 +260,7 @@
         url: {
           type: String,
           value: function(){
-            return "http://localhost:3000/tasks";
+            return "https://to-do-list-rails-server.herokuapp.com/tasks";
           }
         },
         temp_url:{
@@ -256,7 +320,10 @@
       _generateRequest: function(){
         this.$.getTasks.generateRequest();
         this.$.getCompletions.generateRequest();
-      }
+      },
+      _showAddTaskDialog: function(){
+        this.$.addTaskDialog.open();
+      },
 
       // initializeEmptyTasks: function(){
       //   this.tasks = [];

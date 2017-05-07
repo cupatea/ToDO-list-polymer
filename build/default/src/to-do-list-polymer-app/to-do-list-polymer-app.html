@@ -7,6 +7,7 @@
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
 <link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 
 </head><body><dom-module id="to-do-list-polymer-app">
   <template>
@@ -56,7 +57,7 @@
     <div class="container">
       <div class="form">
 
-        <paper-input always-float-label="" label="Enter your task here:" value="{{task}}" char-counter="" maxlength="50"></paper-input>
+        <paper-input always-float-label="" label="Enter your task here:" value="{{task.name}}" char-counter="" maxlength="50"></paper-input>
 
         <paper-icon-button icon="add" on-tap="_addTask"></paper-icon-button>
 
@@ -70,7 +71,7 @@
 
               <paper-icon-button class="left_button" icon="radio-button-unchecked" on-tap="_completeTask"></paper-icon-button>
 
-              {{item}}
+              {{item.name}}
 
               <paper-icon-button class="right_button" icon="cancel" on-tap="_deleteTask"></paper-icon-button>
 
@@ -86,7 +87,7 @@
 
               <paper-icon-button class="left_button" icon="check-circle" on-tap="_unCompleteTask"></paper-icon-button>
 
-              {{item}}
+              {{item.name}}
 
               <paper-icon-button class="right_button" icon="cancel" on-tap="_deleteCompletion"></paper-icon-button>
 
@@ -96,11 +97,26 @@
       </div>
     </div>
 
-    <iron-localstorage name="tasks" value="{{tasks}}" on-iron-localstorage-load-empty="initializeEmptyTasks"></iron-localstorage>
+    <!-- <iron-localstorage name="tasks"
+      value="{{tasks}}"
+      on-iron-localstorage-load-empty="initializeEmptyTasks"
+    ></iron-localstorage>
 
-    <iron-localstorage name="completions" value="{{completions}}" on-iron-localstorage-load-empty="initializeEmptyCompletions"></iron-localstorage>
+    <iron-localstorage name="completions"
+      value="{{completions}}"
+      on-iron-localstorage-load-empty="initializeEmptyCompletions"
+    ></iron-localstorage> -->
+    <iron-ajax id="getTasks" auto="" url="{{url}}" params="{&quot;todo&quot;:&quot;true&quot;}" handle-as="json" last-response="{{tasks}}"></iron-ajax>
+
+    <iron-ajax id="getCompletions" auto="" url="{{url}}" params="{&quot;completed&quot;:&quot;true&quot;}" handle-as="json" last-response="{{completions}}"></iron-ajax>
+
+    <iron-ajax id="postTask" method="POST" url="{{url}}" content-type="application/json" handle-as="json" body="{{task}}" on-response="_generateRequest"></iron-ajax>
+
+    <iron-ajax id="deleteTask" method="DELETE" url="{{temp_url}}" handle-as="json" on-response="_generateRequest"></iron-ajax>
+
+    <iron-ajax id="updateTask" method="PATCH" url="{{temp_url}}" content-type="application/json" handle-as="json" body="{{task}}" on-response="_generateRequest"></iron-ajax>
+
   </template>
-
 
   <script>
     Polymer({
@@ -108,6 +124,18 @@
 
       properties: {
         task: {
+          type: Object,
+          value: function(){
+            return {};
+          }
+        },
+        url: {
+          type: String,
+          value: function(){
+            return "https://to-do-list-rails-server.herokuapp.com/tasks";
+          }
+        },
+        temp_url:{
           type: String,
           value: function(){
             return "";
@@ -128,39 +156,51 @@
       },
 
       _addTask: function() {
-        if(this.task) { this.push('tasks', this.task); }
-        this.task = "";
+        if(this.task.name) {this.$.postTask.generateRequest();}
+        this.task = {};
       },
 
       _deleteTask: function(e) {
         var index = this.tasks.indexOf(e.model.get('item'));
-        this.splice('tasks', index, 1);
+        this.temp_url = this.url + "/" + this.tasks[index].id;
+        this.$.deleteTask.generateRequest();
       },
 
       _deleteCompletion: function(e) {
         var index = this.completions.indexOf(e.model.get('item'));
-        this.splice('completions', index, 1);
+        this.temp_url = this.url + "/" + this.completions[index].id;
+        this.$.deleteTask.generateRequest();
       },
 
       _completeTask: function(e){
         var index = this.tasks.indexOf(e.model.get('item'));
-        this.push('completions', this.tasks[index]);
-        this.splice('tasks', index, 1);
+        this.task = this.tasks[index];
+        this.task.completed = true;
+        this.temp_url = this.url + "/" + this.task.id;
+        this.$.updateTask.generateRequest();
+        this.task = {};
       },
 
       _unCompleteTask: function(e){
         var index = this.completions.indexOf(e.model.get('item'));
-        this.push('tasks', this.completions[index]);
-        this.splice('completions', index, 1);
+        this.task = this.completions[index];
+        this.task.completed = false;
+        this.temp_url = this.url + "/" + this.task.id;
+        this.$.updateTask.generateRequest();
+        this.task = {};
       },
-
-      initializeEmptyTasks: function(){
-        this.tasks = [];
-      },
-
-      initializeEmptyCompletions: function(){
-        this.completions = [];
+      _generateRequest: function(){
+        this.$.getTasks.generateRequest();
+        this.$.getCompletions.generateRequest();
       }
+
+      // initializeEmptyTasks: function(){
+      //   this.tasks = [];
+      // },
+      //
+      // initializeEmptyCompletions: function(){
+      //   this.completions = [];
+      // }
     });
   </script>
 </dom-module>
